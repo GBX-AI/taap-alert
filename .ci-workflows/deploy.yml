@@ -1,24 +1,56 @@
 name: Deploy
 
-# main -> GitHub Pages. The app is a static export, so there is no server:
-# every provider is mocked and the forecast model runs on device.
+# Branch → environment mapping (single-env for now):
+#   main / develop (and any non-prod branch) → dev (auto)
+#   prod branch / v* tag → prod (gated by the "prod" GitHub Environment's reviewers)
+# When the prod environment is provisioned, cut a `prod` branch — the mapping
+# below already routes it to prod.
+#
+# Deviation from the Parivio template, deliberately: this app is a static export
+# with no server, so there are no container images and no Azure step. GitHub
+# Pages also serves one site per repository, so `dev` is currently the public
+# URL. Point the publish step at a separate host when prod is provisioned.
 on:
   push:
-    branches: [main]
+    branches: [main, develop, prod]
+    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, prod]
+        default: dev
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+env:
+  SITE_URL: https://gbx-ai.github.io/taap-alert/
+  BASE_PATH: /taap-alert
 
 concurrency:
-  group: pages
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  resolve:
     runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.pick.outputs.environment }}
+    steps:
+      - id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/prod" ] || [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "environment=prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,27 +58,79 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
       - name: Install
         working-directory: frontend
         run: npm ci
+
+      # Never publish a build that fails to typecheck or whose grading rules
+      # regress — the DP-2 and DP-3 assertions live in the model tests.
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Model tests
+        working-directory: frontend
+        run: npm test
+
       - name: Build static export
         working-directory: frontend
         env:
-          NEXT_PUBLIC_BASE_PATH: /taap-alert
+          NEXT_PUBLIC_BASE_PATH: ${{ env.BASE_PATH }}
         run: npm run build
-      - name: Disable Jekyll
-        run: touch frontend/out/.nojekyll
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: Stamp the build
+        run: |
+          touch frontend/out/.nojekyll
+          {
+            echo "commit:      ${GITHUB_SHA}"
+            echo "ref:         ${GITHUB_REF_NAME}"
+            echo "environment: ${{ needs.resolve.outputs.environment }}"
+            echo "built:       $(date -u +%FT%TZ)"
+          } > frontend/out/BUILD.txt
+
+      - uses: actions/upload-artifact@v4
         with:
+          name: site-${{ github.sha }}
           path: frontend/out
+          retention-days: 7
 
   deploy:
-    needs: build
+    needs: [resolve, build]
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: ${{ needs.resolve.outputs.environment }}  # prod requires reviewer approval
+      url: https://gbx-ai.github.io/taap-alert/
+    permissions:
+      contents: write   # publishes by replacing the gh-pages branch
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-${{ github.sha }}
+          path: out
+
+      # Pages is configured in branch mode against gh-pages, so publishing is a
+      # force-push of the built tree. No Pages settings change is needed, which
+      # means there is no window where the live site is unserved.
+      - name: Publish to gh-pages
+        working-directory: out
+        run: |
+          git init -q
+          git checkout -q -b gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7} (${{ needs.resolve.outputs.environment }})"
+          git push -q --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deployed to ${{ needs.resolve.outputs.environment }}"
+            echo ""
+            echo "${SITE_URL}"
+            echo ""
+            echo "Commit \`${GITHUB_SHA::7}\` from \`${GITHUB_REF_NAME}\` · $(find out -name '*.html' | wc -l) pages"
+          } >> "$GITHUB_STEP_SUMMARY"
