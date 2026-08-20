@@ -1,0 +1,31 @@
+1:"$Sreact.fragment"
+2:I[2943,["500","static/chunks/500-b13bb91f5a6311b6.js","685","static/chunks/685-82d7ad07363cc009.js","582","static/chunks/582-06db5d4946a64937.js","246","static/chunks/app/app/map/%5Bdistrict%5D/page-b5b8a78a0fee3348.js"],"DistrictView"]
+3:I[484,[],"OutletBoundary"]
+4:"$Sreact.suspense"
+8:I[484,[],"ViewportBoundary"]
+9:I[484,[],"MetadataBoundary"]
+b:I[7121,[],""]
+c:I[4581,[],""]
+10:I[8616,[],"ClientSegmentRoot"]
+11:I[3379,["500","static/chunks/500-b13bb91f5a6311b6.js","685","static/chunks/685-82d7ad07363cc009.js","253","static/chunks/app/app/layout-67de7d0093b3b796.js"],"default"]
+14:I[9685,["685","static/chunks/685-82d7ad07363cc009.js","177","static/chunks/app/layout-78b8ebcbad3544c0.js"],"AppProvider"]
+:HL["/taap-alert/_next/static/css/98a55139fe24c271.css","style"]
+:HL["https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Anek+Devanagari:wght@400;500;600;700&display=swap","style"]
+7:X
+e:X
+e:C
+0:{"buildId":"kFv7N2lt_P0fDDA7Uo87Q","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"districtId":"jodhpur"}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":"$@6","staleTime":"$7","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L8",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#f1eee9","media":"(prefers-color-scheme: light)"}],["$","meta","3",{"name":"theme-color","content":"#0d0c0b","media":"(prefers-color-scheme: dark)"}]]}],["$","div",null,{"hidden":true,"children":["$","$L9",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Taap Alert — heat-stress early warning for outdoor workers"}],["$","meta","1",{"name":"description","content":"Anomaly-relative heat-stress warnings for construction and MGNREGA workers across all 33 districts of Rajasthan. Graded advisories, work-rest cycles, hydration and cooling stations in Hindi and Marwari."}],["$","meta","2",{"name":"application-name","content":"Taap Alert"}],["$","meta","3",{"name":"author","content":"GBX-AI"}],["$","meta","4",{"name":"keywords","content":"heat stress,Rajasthan,early warning,MGNREGA,BOCW,occupational health"}],["$","meta","5",{"property":"og:title","content":"Taap Alert"}],["$","meta","6",{"property":"og:description","content":"Heat-stress early warning for outdoor workers in Rajasthan."}],["$","meta","7",{"property":"og:type","content":"website"}],["$","meta","8",{"name":"twitter:card","content":"summary"}],["$","meta","9",{"name":"twitter:title","content":"Taap Alert"}],["$","meta","10",{"name":"twitter:description","content":"Heat-stress early warning for outdoor workers in Rajasthan."}]]}]}]}],null]}],"isPartial":"$@a","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]]}],"isPartial":"$@d","staleTime":"$7","varyParams":"$e"},{"rsc":["$","$1","c",{"children":[null,["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]]}],"isPartial":"$@f","staleTime":"$7","varyParams":"$e"},{"rsc":["$","$1","c",{"children":[null,["$","$L10",null,{"Component":"$11","slots":{"children":["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]},"serverProvidedParams":{"params":{},"promises":["$@12"]}}]]}],"isPartial":"$@13","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/taap-alert/_next/static/css/98a55139fe24c271.css","precedence":"next"}]],["$","html",null,{"lang":"en","data-theme":"taap","suppressHydrationWarning":true,"children":[["$","head",null,{"children":[["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":""}],["$","link",null,{"rel":"stylesheet","href":"https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Anek+Devanagari:wght@400;500;600;700&display=swap"}],["$","script",null,{"dangerouslySetInnerHTML":{"__html":"(function(){try{\n  var t=localStorage.getItem('taap.theme');\n  if(!t){t=matchMedia('(prefers-color-scheme: dark)').matches?'taap-dark':'taap';}\n  document.documentElement.setAttribute('data-theme',t);\n  var l=localStorage.getItem('taap.locale'); if(l){document.documentElement.lang=l;}\n}catch(e){}})();"}}]]}],["$","body",null,{"className":"bg-base-200 text-base-content","children":["$","$L14",null,{"children":["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],"$L15","$L16"]}]}]],[]]}]}]}]]}]]}],"isPartial":"$@17","staleTime":"$7","varyParams":null}],"isUpgradeableISRFallback":false,"a":"$@18","rootVaryParams":null,"needsRuntimeRequest":"$@19"}
+5:null
+12:"$0:data:4:rsc:props:children:1:props:serverProvidedParams:params"
+15:["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}]
+16:["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]
+7:300
+19:true
+7:C
+18:0
+a:"$undefined"
+d:"$undefined"
+f:"$undefined"
+17:"$undefined"
+6:"$undefined"
+13:"$undefined"

@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[246],{2943:(e,s,i)=>{"use strict";i.d(s,{DistrictView:()=>n});var t=i(5155),r=i(3582);function n({districtId:e}){return(0,t.jsx)(r.j,{districtId:e})}},6638:(e,s,i)=>{Promise.resolve().then(i.bind(i,2943))}},e=>{e.O(0,[500,685,582,441,794,358],()=>e(e.s=6638)),_N_E=e.O()}]);
