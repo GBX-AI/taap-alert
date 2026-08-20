@@ -1,0 +1,164 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: taap --default, taap-dark --prefersdark;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   taap — light. Warm desert neutrals; a single teal action colour.
+   Hex values are carried over unchanged from the approved design.
+   ───────────────────────────────────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+  name: "taap";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: #fcfaf7;   /* card / raised surface */
+  --color-base-200: #f1eee9;   /* page ground */
+  --color-base-300: #e9e4dc;   /* sunk well, tracks, insets */
+  --color-base-content: #1f1b18;
+
+  --color-primary: #1f6f72;    /* the only action colour */
+  --color-primary-content: #ffffff;
+  --color-secondary: #5a534c;
+  --color-secondary-content: #fcfaf7;
+  --color-accent: #1f6f72;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1f1b18;
+  --color-neutral-content: #f1eee9;
+
+  --color-info: #1f6f72;
+  --color-info-content: #ffffff;
+  --color-success: #1f6f72;
+  --color-success-content: #ffffff;
+  --color-warning: #9a6520;
+  --color-warning-content: #ffffff;
+  --color-error: #7b2e38;
+  --color-error-content: #fbedee;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 1.0625rem;
+  --radius-box: 1.625rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.28rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "taap-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #1a1816;
+  --color-base-200: #0d0c0b;
+  --color-base-300: #111010;
+  --color-base-content: #f4f0eb;
+
+  --color-primary: #69bdb8;
+  --color-primary-content: #08211f;
+  --color-secondary: #bdb4aa;
+  --color-secondary-content: #0d0c0b;
+  --color-accent: #69bdb8;
+  --color-accent-content: #08211f;
+  --color-neutral: #f4f0eb;
+  --color-neutral-content: #0d0c0b;
+
+  --color-info: #69bdb8;
+  --color-info-content: #08211f;
+  --color-success: #69bdb8;
+  --color-success-content: #08211f;
+  --color-warning: #d9a257;
+  --color-warning-content: #0d0c0b;
+  --color-error: #66252e;
+  --color-error-content: #f8e6e8;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 1.0625rem;
+  --radius-box: 1.625rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.28rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   The band ramp is ORDINAL DATA, not semantic state, so it lives on its own
+   scale rather than being folded into primary/secondary/accent. Lightness
+   descends monotonically 1 → 5, which is what makes severity survive
+   greyscale printing and deuteranopia. Do not reorder or re-tint casually.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --band-1: #cbddd6; --band-1-ink: #20352f;
+  --band-2: #ebd096; --band-2-ink: #3a2e14;
+  --band-3: #de9a63; --band-3-ink: #382009;
+  --band-4: #b95c42; --band-4-ink: #fff4ef;
+  --band-5: #7b2e38; --band-5-ink: #fbedee;
+  --grain-opacity: 0.028;
+}
+[data-theme="taap-dark"] {
+  --band-1: #8da79e; --band-1-ink: #101b18;
+  --band-2: #c4a76d; --band-2-ink: #241b0b;
+  --band-3: #be7d4c; --band-3-ink: #221206;
+  --band-4: #9a4b36; --band-4-ink: #fcefea;
+  --band-5: #66252e; --band-5-ink: #f8e6e8;
+  --grain-opacity: 0.05;
+}
+
+@theme {
+  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-dv: "Anek Devanagari", "Nirmala UI", sans-serif;
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+  /* fine grain over the whole page — reads as material, not as a gradient */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 1;
+    pointer-events: none; opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  :focus-visible { outline: 2.5px solid var(--color-primary); outline-offset: 3px; border-radius: 10px; }
+}
+
+@layer components {
+  .font-dv { font-family: var(--font-dv); line-height: 1.65; }
+  .font-display { font-family: var(--font-display); }
+  .eyebrow {
+    font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em;
+    text-transform: lowercase; color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  }
+  /* raised surface: hairline + inner highlight, never a drop shadow for its own sake */
+  .surface {
+    background: var(--color-base-100);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, white 60%, transparent),
+      inset 0 0 0 1px color-mix(in oklab, var(--color-base-content) 10%, transparent),
+      0 1px 2px rgb(48 40 33 / 0.05), 0 10px 24px -16px rgb(48 40 33 / 0.3);
+  }
+  [data-theme="taap-dark"] .surface {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      inset 0 0 0 1px rgb(255 255 255 / 0.075),
+      0 1px 2px rgb(0 0 0 / 0.6), 0 12px 28px -18px rgb(0 0 0 / 0.9);
+  }
+  .stale-hatch {
+    background-image: repeating-linear-gradient(
+      45deg, rgb(0 0 0 / 0.15) 0 3px, transparent 3px 10px);
+  }
+  .press { transition: transform 0.16s var(--ease-spring); }
+  .press:active { transform: scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
