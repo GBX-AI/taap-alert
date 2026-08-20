@@ -1,51 +1,75 @@
 import type { Band } from './model';
 
 /**
- * Work-rest and hydration guidance per band.
+ * Work-rest and hydration guidance, per band AND per work-intensity class.
  *
- * Values are placeholders pending occupational-health review against ISO 7243
- * (FRD open item OI-7). They must not be published as clinical guidance until
- * that review is complete.
+ * FR-3.2 requires distinct guidance per intensity, and it matters: at the same
+ * heat, a body producing ~415 W hauling headloads sheds far less of it than one
+ * producing ~180 W checking a register. ISO 7243 sets its limits against
+ * metabolic rate for exactly this reason, so a single work-rest ratio for
+ * "workers" is either unsafe for the heaviest work or needlessly costly for
+ * the lightest.
  *
- * Traceability: FR-3.2, FR-3.6, FR-3.7 (worker-facing output is action, never
- * a measurement).
+ * The `moderate` column is the default and matches the ratios shown before
+ * intensity classes existed. `light` and `heavy` fan out around it.
+ *
+ * All values are placeholders pending occupational-health review against
+ * ISO 7243 (FRD open item OI-7). They must not be published as clinical
+ * guidance until that review is complete.
+ *
+ * Traceability: FR-3.2, FR-3.6, FR-3.7.
  */
+
+export type Intensity = 'light' | 'moderate' | 'heavy';
+
+export const INTENSITIES: Intensity[] = ['light', 'moderate', 'heavy'];
+
+export interface IntensityGuidance {
+  /** Minutes of work per cycle. 0 with `stop` false means continuous work. */
+  workMin: number;
+  restMin: number;
+  waterMl: number;
+  waterEveryMin: number;
+  /** Outdoor work should cease entirely. */
+  stop?: boolean;
+}
+
 export interface BandGuidance {
   band: Band;
   en: string;
   hi: string;
-  /** Minutes of work per cycle; 0 means continuous work is acceptable. */
-  workMin: number;
-  /** Minutes of rest per cycle. */
-  restMin: number;
-  /** Millilitres of water per interval. */
-  waterMl: number;
-  /** Interval in minutes. */
-  waterEveryMin: number;
-  /** Whether oral rehydration salts are required. */
+  /** Oral rehydration salts required at this band, regardless of intensity. */
   ors: boolean;
-  cycleEn: string;
-  cycleHi: string;
   adviceEn: string;
   adviceHi: string;
   waterEn: string;
   waterHi: string;
   rulesEn: string[];
   rulesHi: string[];
+  intensity: Record<Intensity, IntensityGuidance>;
 }
+
+export const INTENSITY_LABELS: Record<Intensity, { en: string; hi: string; exampleEn: string; exampleHi: string }> = {
+  light: {
+    en: 'Light', hi: 'हल्का',
+    exampleEn: 'Supervision, guarding, site register, light assembly',
+    exampleHi: 'निगरानी, चौकीदारी, रजिस्टर, हल्की जोड़ाई',
+  },
+  moderate: {
+    en: 'Moderate', hi: 'मध्यम',
+    exampleEn: 'Masonry, plastering, painting, carrying light loads',
+    exampleHi: 'चिनाई, प्लास्टर, पुताई, हल्का बोझ उठाना',
+  },
+  heavy: {
+    en: 'Heavy', hi: 'भारी',
+    exampleEn: 'Headload carrying, digging, concrete, rebar, demolition',
+    exampleHi: 'सिर पर बोझ, खुदाई, कंक्रीट, सरिया, तोड़-फोड़',
+  },
+};
 
 export const BANDS: Record<Band, BandGuidance> = {
   1: {
-    band: 1,
-    en: 'Low',
-    hi: 'कम',
-    workMin: 0,
-    restMin: 0,
-    waterMl: 250,
-    waterEveryMin: 60,
-    ors: false,
-    cycleEn: 'Work continuously',
-    cycleHi: 'लगातार काम करें',
+    band: 1, en: 'Low', hi: 'कम', ors: false,
     adviceEn: 'No cycle needed. Keep drinking water through the shift.',
     adviceHi: 'चक्र की ज़रूरत नहीं। पूरी पाली में पानी पीते रहें।',
     waterEn: 'Plain water is enough today.',
@@ -60,20 +84,16 @@ export const BANDS: Record<Band, BandGuidance> = {
       'सूती कपड़े, सिर ढका हुआ',
       'काम की जगह से 100 मीटर में छायादार जगह',
     ],
+    intensity: {
+      light: { workMin: 0, restMin: 0, waterMl: 250, waterEveryMin: 60 },
+      moderate: { workMin: 0, restMin: 0, waterMl: 250, waterEveryMin: 60 },
+      heavy: { workMin: 0, restMin: 0, waterMl: 350, waterEveryMin: 60 },
+    },
   },
   2: {
-    band: 2,
-    en: 'Moderate',
-    hi: 'मध्यम',
-    workMin: 45,
-    restMin: 15,
-    waterMl: 500,
-    waterEveryMin: 60,
-    ors: false,
-    cycleEn: '45 min work · 15 min rest',
-    cycleHi: '45 मिनट काम · 15 मिनट आराम',
-    adviceEn: 'One cycle every hour. Take the break in shade, sitting.',
-    adviceHi: 'हर घंटे एक चक्र। ब्रेक छाया में, बैठकर लें।',
+    band: 2, en: 'Moderate', hi: 'मध्यम', ors: false,
+    adviceEn: 'Take the break in shade, sitting. Watch new workers closely.',
+    adviceHi: 'ब्रेक छाया में, बैठकर लें। नए मज़दूरों पर नज़र रखें।',
     waterEn: 'One full bottle every hour, plain water.',
     waterHi: 'हर घंटे एक पूरी बोतल, सादा पानी।',
     rulesEn: [
@@ -88,22 +108,18 @@ export const BANDS: Record<Band, BandGuidance> = {
       'ढीले सूती कपड़े, पूरी बाँह, सिर ढका',
       'सुपरवाइज़र हर घंटे हर मज़दूर को देखे',
     ],
+    intensity: {
+      light: { workMin: 0, restMin: 0, waterMl: 400, waterEveryMin: 60 },
+      moderate: { workMin: 45, restMin: 15, waterMl: 500, waterEveryMin: 60 },
+      heavy: { workMin: 40, restMin: 20, waterMl: 600, waterEveryMin: 60 },
+    },
   },
   3: {
-    band: 3,
-    en: 'High',
-    hi: 'अधिक',
-    workMin: 40,
-    restMin: 15,
-    waterMl: 500,
-    waterEveryMin: 30,
-    ors: true,
-    cycleEn: '40 min work · 15 min rest',
-    cycleHi: '40 मिनट काम · 15 मिनट आराम',
-    adviceEn: 'About 1 cycle an hour. Move heavy lifting outside the danger window.',
-    adviceHi: 'लगभग हर घंटे एक चक्र। भारी काम खतरे के समय से बाहर करें।',
-    waterEn: 'Half a litre every half hour. ORS in every second bottle.',
-    waterHi: 'हर आधे घंटे आधा लीटर। हर दूसरी बोतल में ORS।',
+    band: 3, en: 'High', hi: 'अधिक', ors: true,
+    adviceEn: 'Move heavy lifting outside the danger window. Rest in shade, not sun.',
+    adviceHi: 'भारी काम खतरे के समय से बाहर करें। छाया में आराम करें।',
+    waterEn: 'ORS in every second bottle. Do not wait for thirst.',
+    waterHi: 'हर दूसरी बोतल में ORS। प्यास का इंतज़ार न करें।',
     rulesEn: [
       'Heavy lifting only before the window opens',
       'Rest in shade with airflow — a tarpaulin alone is not enough',
@@ -118,22 +134,18 @@ export const BANDS: Record<Band, BandGuidance> = {
       'कोई अकेला काम न करे; जोड़ी बनाएँ',
       'सबसे नए मज़दूर पर सबसे ज़्यादा ध्यान',
     ],
+    intensity: {
+      light: { workMin: 50, restMin: 10, waterMl: 500, waterEveryMin: 45 },
+      moderate: { workMin: 40, restMin: 15, waterMl: 500, waterEveryMin: 30 },
+      heavy: { workMin: 30, restMin: 30, waterMl: 500, waterEveryMin: 20 },
+    },
   },
   4: {
-    band: 4,
-    en: 'Very high',
-    hi: 'बहुत अधिक',
-    workMin: 30,
-    restMin: 30,
-    waterMl: 500,
-    waterEveryMin: 20,
-    ors: true,
-    cycleEn: '30 min work · 30 min rest',
-    cycleHi: '30 मिनट काम · 30 मिनट आराम',
-    adviceEn: 'Half the hour is rest. Move the task itself into shade.',
-    adviceHi: 'आधा घंटा आराम। काम को ही छाया में ले जाएँ।',
-    waterEn: 'Half a litre every 20 minutes, with ORS each time.',
-    waterHi: 'हर 20 मिनट में आधा लीटर, हर बार ORS के साथ।',
+    band: 4, en: 'Very high', hi: 'बहुत अधिक', ors: true,
+    adviceEn: 'Move the task itself into shade, or reschedule it.',
+    adviceHi: 'काम को ही छाया में ले जाएँ, या समय बदलें।',
+    waterEn: 'ORS every time. Rest at a cooling station if one is near.',
+    waterHi: 'हर बार ORS। पास हो तो शीतल केंद्र में आराम करें।',
     rulesEn: [
       'Stop all heavy lifting inside the danger window',
       'Relocate the task to shade or reschedule it',
@@ -148,46 +160,65 @@ export const BANDS: Record<Band, BandGuidance> = {
       'दो का नियम — कोई नज़र से ओझल न हो',
       'तबीयत बिगड़े तो पूरे दिन के लिए काम बंद',
     ],
+    intensity: {
+      light: { workMin: 40, restMin: 20, waterMl: 500, waterEveryMin: 30 },
+      moderate: { workMin: 30, restMin: 30, waterMl: 500, waterEveryMin: 20 },
+      heavy: { workMin: 20, restMin: 40, waterMl: 500, waterEveryMin: 15 },
+    },
   },
   5: {
-    band: 5,
-    en: 'Extreme',
-    hi: 'अत्यधिक',
-    workMin: 15,
-    restMin: 45,
-    waterMl: 500,
-    waterEveryMin: 20,
-    ors: true,
-    cycleEn: 'Stop outdoor work',
-    cycleHi: 'बाहरी काम बंद करें',
-    adviceEn: 'Essential work only, in shade, 15 minutes at a time.',
-    adviceHi: 'केवल ज़रूरी काम, छाया में, एक बार में 15 मिनट।',
-    waterEn: 'Half a litre every 20 minutes with ORS, before and after each stint.',
-    waterHi: 'हर 20 मिनट में आधा लीटर ORS के साथ, हर दौर से पहले और बाद में।',
+    band: 5, en: 'Extreme', hi: 'अत्यधिक', ors: true,
+    adviceEn: 'Essential work only, in shade, short stints. Move the crew to a cooling station.',
+    adviceHi: 'केवल ज़रूरी काम, छाया में, थोड़ी-थोड़ी देर। टीम को शीतल केंद्र भेजें।',
+    waterEn: 'ORS in every bottle, before and after each stint.',
+    waterHi: 'हर बोतल में ORS, हर दौर से पहले और बाद में।',
     rulesEn: [
       'Move the whole crew to a cooling station',
       'Only emergency or essential work continues',
-      '15 minutes maximum per stint, always in shade',
+      'Always in shade, never alone',
       'Supervisor stays with the crew — no remote sign-off',
       'Wages must not depend on continuing work today',
     ],
     rulesHi: [
       'पूरी टीम को शीतल केंद्र भेजें',
       'केवल आपातकालीन या ज़रूरी काम',
-      'एक बार में अधिकतम 15 मिनट, हमेशा छाया में',
+      'हमेशा छाया में, कभी अकेले नहीं',
       'सुपरवाइज़र टीम के साथ रहे',
       'आज काम जारी रखने पर मज़दूरी निर्भर न हो',
     ],
+    intensity: {
+      light: { workMin: 25, restMin: 35, waterMl: 500, waterEveryMin: 20 },
+      moderate: { workMin: 15, restMin: 45, waterMl: 500, waterEveryMin: 20 },
+      heavy: { workMin: 0, restMin: 60, waterMl: 500, waterEveryMin: 15, stop: true },
+    },
   },
 };
+
+export const guidanceFor = (band: Band, intensity: Intensity): IntensityGuidance =>
+  BANDS[band].intensity[intensity];
 
 /** CSS custom property for a band fill. Never inline a band hex anywhere else. */
 export const bandFill = (b: Band) => `var(--band-${b})`;
 export const bandInk = (b: Band) => `var(--band-${b}-ink)`;
 
-/** Litres a worker should drink across an 8-hour shift at this band. */
-export const shiftLitres = (g: BandGuidance) =>
+export function cycleLabel(g: IntensityGuidance, locale: 'en' | 'hi'): string {
+  if (g.stop) return locale === 'hi' ? 'बाहरी काम बंद करें' : 'Stop outdoor work';
+  if (!g.workMin) return locale === 'hi' ? 'लगातार काम करें' : 'Work continuously';
+  return locale === 'hi'
+    ? `${g.workMin} मिनट काम · ${g.restMin} मिनट आराम`
+    : `${g.workMin} min work · ${g.restMin} min rest`;
+}
+
+/** Litres a worker should drink across an 8-hour shift. */
+export const shiftLitres = (g: IntensityGuidance) =>
   ((g.waterMl * (60 / g.waterEveryMin) * 8) / 1000).toFixed(1);
 
-export const cyclesPerHour = (g: BandGuidance) =>
+export const cyclesPerHour = (g: IntensityGuidance) =>
   g.workMin ? (60 / (g.workMin + g.restMin)).toFixed(1) : null;
+
+/** Minutes of work permitted per hour — the ISO 7243 way of stating the same limit. */
+export const workMinutesPerHour = (g: IntensityGuidance) => {
+  if (g.stop) return 0;
+  if (!g.workMin) return 60;
+  return Math.round((g.workMin / (g.workMin + g.restMin)) * 60);
+};

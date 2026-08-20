@@ -4,11 +4,12 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
 } from 'react';
 import { type Band, type DayForecast } from './forecast/model';
-import { BANDS, type BandGuidance } from './forecast/bands';
+import { BANDS, guidanceFor, type BandGuidance, type Intensity, type IntensityGuidance } from './forecast/bands';
 import { ALL_BLOCKS, DISTRICTS, blockById, districtById, type Block, type District } from './data/districts';
 import { DAYS, forecastFor, markApproved, queueFor, sheltersFor, toggleShelter } from './data/mock';
 import type { DayMeta, QueueItem, Shelter } from './data/provider';
 import { clearSession, loadSession, saveSession, type Session } from './auth/provider';
+import { listAudit, recordApproval } from './audit/store';
 import { DICT, type Locale } from './i18n';
 
 export type Theme = 'taap' | 'taap-dark';
@@ -33,7 +34,12 @@ interface Store {
 
   forecast: DayForecast;
   band: Band;
+  /** Band-level copy: name, advice, site rules. */
   guidance: BandGuidance;
+  /** Numbers for the selected work-intensity class — FR-3.2. */
+  work: IntensityGuidance;
+  intensity: Intensity;
+  setIntensity: (i: Intensity) => void;
 
   mapMode: MapMode; setMapMode: (m: MapMode) => void;
 
@@ -63,13 +69,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [hour, setHour] = useState(14);
   const [blockId, setBlockId] = useState('phalodi');
   const [mapMode, setMapMode] = useState<MapMode>('risk');
+  const [intensity, setIntensity] = useState<Intensity>('moderate');
   const [tick, setTick] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   /* restore preferences */
   useEffect(() => {
     const s = loadSession();
-    if (s) { setSession(s); setBlockId(s.blockId); }
+    if (s) { setSession(s); setBlockId(s.blockId); setIntensity(s.intensity ?? 'moderate'); }
     const savedLocale = window.localStorage.getItem('taap.locale') as Locale | null;
     if (savedLocale) setLocaleState(savedLocale);
     const savedTheme = window.localStorage.getItem('taap.theme') as Theme | null;
@@ -100,7 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback((s: Session) => {
-    saveSession(s); setSession(s); setBlockId(s.blockId);
+    saveSession(s); setSession(s); setBlockId(s.blockId); setIntensity(s.intensity ?? 'moderate');
   }, []);
 
   const signOut = useCallback(() => { clearSession(); setSession(null); }, []);
@@ -113,6 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const forecast = useMemo(() => forecastFor(block.id, day), [block.id, day]);
   const band = forecast.bands[hour - 6] ?? 1;
   const guidance = BANDS[band];
+  const work = guidanceFor(band, intensity);
 
   const shelters = useMemo(() => sheltersFor(block.id), [block.id, tick]);
   const queue = useMemo(
@@ -126,12 +134,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     session, signIn, signOut,
     day, setDay, hour, setHour, days: DAYS,
     block, setBlock: setBlockId, district, districts: DISTRICTS,
-    forecast, band, guidance,
+    forecast, band, guidance, work, intensity, setIntensity,
     mapMode, setMapMode,
     shelters,
     setShelterOpen: (id, open) => { toggleShelter(id, open); setTick((n) => n + 1); },
     queue,
-    approve: (ids) => { markApproved(ids); setTick((n) => n + 1); },
+    approve: (ids) => {
+      ids.forEach((id) => {
+        const b = blockById(id);
+        if (!b) return;
+        const f = forecastFor(id, 1);
+        const stale = Boolean(b.climate.stale);
+        recordApproval({
+          id: `ADV-2026-08-21-${id.slice(0, 3).toUpperCase()}`,
+          blockId: b.id, blockEn: b.en, blockHi: b.hi, districtId: b.districtId,
+          date: '21 Aug 2026', band: f.maxBand, state: 'dispatched',
+          approvedBy: session?.name ?? 'District Administrator',
+          approvedAt: '20 Aug 18:44', dispatchedAt: '21 Aug 05:30',
+          recipients: f.maxBand * 2840,
+          variants: ['light', 'moderate', 'heavy'],
+          vintage: {
+            sourceIssuedAt: stale ? '19 Aug 16:00' : '20 Aug 04:00',
+            ageHours: stale ? 14 : 2,
+            modelRun: 'm-2026.08.14',
+            stale,
+          },
+          content: {
+            smsHindi: `${b.hi}: कल ${BANDS[f.maxBand].hi} गर्मी। ${f.window ?? ''} तक भारी काम न करें।`,
+            ivrMarwari: `रामरामसा। ${b.hi} में काल घणी गरमी रैवैला।`,
+          },
+        });
+      });
+      markApproved(ids);
+      setTick((n) => n + 1);
+    },
     toast, say,
   };
 

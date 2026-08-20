@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useApp } from '@/lib/store';
 import { dv } from '@/lib/i18n';
-import { bandFill, bandInk, BANDS } from '@/lib/forecast/bands';
+import { bandFill, bandInk, BANDS, cycleLabel, guidanceFor, INTENSITIES, INTENSITY_LABELS } from '@/lib/forecast/bands';
 import { forecastFor } from '@/lib/data/mock';
 import { blockById } from '@/lib/data/districts';
 import { Card, Eyebrow } from './Primitives';
@@ -185,12 +185,13 @@ function AdvisoryDetail({ blockId, onBack, onSent }: {
   const f = forecastFor(b.id, 1);
   const band = f.maxBand;
   const g = BANDS[band];
+  const w = guidanceFor(band, 'moderate');
   const hi = locale === 'hi';
   const shelter = shelters[0];
 
-  const sms = `${b.hi}: कल ${g.hi} गर्मी। ${(f.window ?? '').replace('–', 'से')} तक भारी काम न करें। ${g.waterMl} मि.ली. पानी हर ${g.waterEveryMin} मिनट। ${shelter.hi} में छाया और पानी।`;
+  const sms = `${b.hi}: कल ${g.hi} गर्मी। ${(f.window ?? '').replace('–', 'से')} तक भारी काम न करें। ${w.waterMl} मि.ली. पानी हर ${w.waterEveryMin} मिनट। ${shelter.hi} में छाया और पानी।`;
   const marwariBand: Record<number, string> = { 1: 'थोड़ी', 2: 'ठीक-ठाक', 3: 'घणी', 4: 'बौत घणी', 5: 'खतरा जितरी' };
-  const marwari = `रामरामसा। ${b.hi} में काल ${marwariBand[band]} गरमी रैवैला। ${(f.window ?? '').replace('–', 'सूं')} तांई भारी काम मती करो। हर ${g.waterEveryMin} मिनट में ${g.waterMl} मि.ली. पाणी पीवो।${g.ors ? ' ओ.आर.एस. भेळो करो।' : ''} ठंडी जगै — ${shelter.hi}। फेर सुणण खातर एक दबावो।`;
+  const marwari = `रामरामसा। ${b.hi} में काल ${marwariBand[band]} गरमी रैवैला। ${(f.window ?? '').replace('–', 'सूं')} तांई भारी काम मती करो। हर ${w.waterEveryMin} मिनट में ${w.waterMl} मि.ली. पाणी पीवो।${g.ors ? ' ओ.आर.एस. भेळो करो।' : ''} ठंडी जगै — ${shelter.hi}। फेर सुणण खातर एक दबावो।`;
 
   return (
     <>
@@ -259,6 +260,32 @@ function AdvisoryDetail({ blockId, onBack, onSent }: {
             <Icon size={16} stroke={2.2}><path d="M12 7.5v5.5M12 16.5v.4" /><circle cx="12" cy="12" r="8.6" /></Icon>
           </span>
           <span className={`text-[12px] leading-relaxed text-base-content/55 ${dv(locale)}`}>{t.marwariNote}</span>
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <Eyebrow className={dv(locale)}>{t.auditVariants}</Eyebrow>
+        <p className={`mt-1.5 text-[12.5px] leading-relaxed text-base-content/55 ${dv(locale)}`}>
+          {t.auditVariantsNote}
+        </p>
+        <div className="mt-3 flex flex-col gap-2">
+          {INTENSITIES.map((i) => {
+            const gi = guidanceFor(band, i);
+            return (
+              <div key={i} className="flex items-center gap-3 rounded-field bg-base-300 px-3.5 py-2.75
+                ring-1 ring-base-content/10">
+                <span className={`w-20 shrink-0 text-[12.5px] font-extrabold ${dv(locale)}`}>
+                  {hi ? INTENSITY_LABELS[i].hi : INTENSITY_LABELS[i].en}
+                </span>
+                <span className={`flex-1 font-display text-[13px] font-bold ${dv(locale)}`}>
+                  {cycleLabel(gi, locale)}
+                </span>
+                <span className="font-display text-[12.5px] font-extrabold text-base-content/55 whitespace-nowrap">
+                  {gi.waterMl}/{gi.waterEveryMin}m
+                </span>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

@@ -13,6 +13,7 @@ const TABS = [
   { href: '/app/map/', key: 'tabMap', icon: <><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 7" /><path d="M9 4v13M15 7v12.5" /></> },
   { href: '/app/ask/', key: 'tabAsk', icon: <path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" /> },
   { href: '/app/approve/', key: 'tabApprove', icon: <path d="M20 6 9.5 17 4 11.5" />, officerOnly: true },
+  { href: '/app/audit/', key: 'tabAudit', icon: <><path d="M12 3l7 3v6c0 4.4-3 8.3-7 9.5C8 20.3 5 16.4 5 12V6z" /><path d="M9 12l2 2 4-4" /></>, officerOnly: true },
   { href: '/app/shelters/', key: 'tabShelters', icon: <><path d="M3 10.5 12 4l9 6.5" /><path d="M5.5 10.5V20h13v-9.5" /><path d="M10 20v-5h4v5" /></> },
 ] as const;
 

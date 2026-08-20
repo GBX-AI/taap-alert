@@ -13,6 +13,7 @@
  */
 
 export type Role = 'worker' | 'supervisor' | 'officer';
+export type { Intensity } from '../forecast/bands';
 
 export interface Session {
   phone: string;
@@ -24,6 +25,8 @@ export interface Session {
   blockId: string;
   /** Which labour database the record came from — FR-5.2, FR-5.3. */
   source: 'BOCW' | 'MGNREGA' | 'Supervisor roster' | 'Department';
+  /** Registered work-intensity class — FR-5.1. Drives which advisory variant they see. */
+  intensity: import('../forecast/bands').Intensity;
 }
 
 export interface OtpChallenge {

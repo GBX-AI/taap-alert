@@ -10,15 +10,15 @@ import type { AuthProvider, OtpChallenge, Session } from './provider';
  */
 const REGISTRY: Record<string, Session> = {
   '9414410001': { phone: '9414410001', name: 'Ramlal Bhati', role: 'worker',
-    districtId: 'jodhpur', blockId: 'phalodi', source: 'BOCW' },
+    districtId: 'jodhpur', blockId: 'phalodi', source: 'BOCW', intensity: 'heavy' },
   '9414410002': { phone: '9414410002', name: 'Sunita Devi', role: 'worker',
-    districtId: 'jodhpur', blockId: 'shergarh', source: 'MGNREGA' },
+    districtId: 'jodhpur', blockId: 'shergarh', source: 'MGNREGA', intensity: 'moderate' },
   '9414410003': { phone: '9414410003', name: 'Mohan Singh', role: 'supervisor',
-    districtId: 'jodhpur', blockId: 'phalodi', source: 'Supervisor roster' },
+    districtId: 'jodhpur', blockId: 'phalodi', source: 'Supervisor roster', intensity: 'moderate' },
   '9414410004': { phone: '9414410004', name: 'R. Bishnoi', role: 'officer',
-    districtId: 'jodhpur', blockId: 'phalodi', source: 'Department' },
+    districtId: 'jodhpur', blockId: 'phalodi', source: 'Department', intensity: 'light' },
   '9414410005': { phone: '9414410005', name: 'K. Meena', role: 'officer',
-    districtId: 'kota', blockId: 'ladpura', source: 'Department' },
+    districtId: 'kota', blockId: 'ladpura', source: 'Department', intensity: 'light' },
 };
 
 export const DEMO_ACCOUNTS = Object.values(REGISTRY);
@@ -26,7 +26,7 @@ export const DEMO_ACCOUNTS = Object.values(REGISTRY);
 /** Anything not in the seeded registry still gets in, as an unregistered worker. */
 function fallback(phone: string): Session {
   return { phone, name: 'Guest worker', role: 'worker',
-    districtId: 'jodhpur', blockId: 'phalodi', source: 'BOCW' };
+    districtId: 'jodhpur', blockId: 'phalodi', source: 'BOCW', intensity: 'moderate' };
 }
 
 const pending = new Map<string, string>();

@@ -14,12 +14,12 @@ import { Icon } from './Pictograms';
  * so a full cycle is visible in a demo; real time is one tap away.
  */
 export function CycleTimer() {
-  const { t, locale, guidance, say } = useApp();
+  const { t, locale, work, say } = useApp();
   const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState<'work' | 'rest'>('work');
   const [demo, setDemo] = useState(true);
 
-  const total = (phase === 'work' ? guidance.workMin || 45 : guidance.restMin || 15) * 60;
+  const total = (phase === 'work' ? work.workMin || 45 : work.restMin || 15) * 60;
   const [left, setLeft] = useState(total);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -28,8 +28,8 @@ export function CycleTimer() {
   useEffect(() => {
     setRunning(false);
     setPhase('work');
-    setLeft((guidance.workMin || 45) * 60);
-  }, [guidance.band, guidance.workMin]);
+    setLeft((work.workMin || 45) * 60);
+  }, [work.workMin, work.restMin]);
 
   useEffect(() => {
     if (!running) return;
@@ -39,17 +39,17 @@ export function CycleTimer() {
         const next = phaseRef.current === 'work' ? 'rest' : 'work';
         setPhase(next);
         say(next === 'rest' ? t.toRest : t.toWork);
-        return (next === 'work' ? guidance.workMin || 45 : guidance.restMin || 15) * 60;
+        return (next === 'work' ? work.workMin || 45 : work.restMin || 15) * 60;
       });
     }, demo ? 16.7 : 1000);
     return () => window.clearInterval(id);
-  }, [running, demo, guidance.workMin, guidance.restMin, say, t.toRest, t.toWork]);
+  }, [running, demo, work.workMin, work.restMin, say, t.toRest, t.toWork]);
 
   const reset = useCallback(() => {
     setRunning(false);
     setPhase('work');
-    setLeft((guidance.workMin || 45) * 60);
-  }, [guidance.workMin]);
+    setLeft((work.workMin || 45) * 60);
+  }, [work.workMin]);
 
   const mins = Math.floor(Math.max(0, left) / 60);
   const secs = Math.max(0, left) % 60;

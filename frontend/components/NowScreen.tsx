@@ -3,7 +3,8 @@
 import { useState, type ReactNode } from 'react';
 import { useApp } from '@/lib/store';
 import { dv } from '@/lib/i18n';
-import { bandFill, bandInk, cyclesPerHour, shiftLitres } from '@/lib/forecast/bands';
+import { bandFill, bandInk, cycleLabel, cyclesPerHour, INTENSITIES, INTENSITY_LABELS,
+  shiftLitres, workMinutesPerHour } from '@/lib/forecast/bands';
 import { forecastFor } from '@/lib/data/mock';
 import { Card, Eyebrow } from './Primitives';
 import { Bottles, FIG_REST, FIG_SHELTER, FIG_STOP, FIG_WORK, Icon, WorkRestDial } from './Pictograms';
@@ -12,7 +13,8 @@ import { CycleTimer } from './CycleTimer';
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function NowScreen() {
-  const { t, locale, block, forecast: f, band, guidance: g, day, days, hour, setHour, setDay, shelters } = useApp();
+  const { t, locale, block, forecast: f, band, guidance: g, work, intensity, setIntensity,
+    day, days, hour, setHour, setDay, shelters } = useApp();
   const [showMore, setShowMore] = useState(false);
   const i = hour - 6;
   const hi = locale === 'hi';
@@ -151,7 +153,7 @@ export function NowScreen() {
         </div>
       </Card>
 
-      {band === 5 && (
+      {work.stop && (
         <div className="flex items-center gap-3.5 rounded-box px-5 py-4 shadow-lg"
           style={{ background: bandFill(5), color: bandInk(5) }}>
           <Icon size={42} stroke={1.8}>{FIG_STOP}</Icon>
@@ -162,25 +164,54 @@ export function NowScreen() {
         </div>
       )}
 
+      <Card className="p-5">
+        <div className="flex items-baseline justify-between gap-2.5">
+          <Eyebrow className={dv(locale)}>{t.workType}</Eyebrow>
+          <Eyebrow className={dv(locale)}>{t.workTypeHint}</Eyebrow>
+        </div>
+        <div className="mt-3 flex gap-2">
+          {INTENSITIES.map((i) => (
+            <button key={i} onClick={() => setIntensity(i)} aria-pressed={intensity === i}
+              className={`press flex-1 rounded-selector py-2.5 text-[13px] font-extrabold transition ${
+                intensity === i ? 'bg-neutral text-neutral-content shadow-md'
+                                : 'bg-base-300 text-base-content/55 ring-1 ring-base-content/10'} ${dv(locale)}`}>
+              {hi ? INTENSITY_LABELS[i].hi : INTENSITY_LABELS[i].en}
+            </button>
+          ))}
+        </div>
+        <p className={`mt-2.5 text-[12.5px] leading-relaxed text-base-content/55 ${dv(locale)}`}>
+          {hi ? INTENSITY_LABELS[intensity].exampleHi : INTENSITY_LABELS[intensity].exampleEn}
+        </p>
+      </Card>
+
       <Card>
-        <div className="px-5 pt-4"><Eyebrow className={dv(locale)}>{t.cycle}</Eyebrow></div>
+        <div className="flex items-baseline justify-between gap-2.5 px-5 pt-4">
+          <Eyebrow className={dv(locale)}>{t.cycle}</Eyebrow>
+          <span className="font-display text-[11px] font-extrabold text-base-content/55">
+            {workMinutesPerHour(work)} / 60 min
+          </span>
+        </div>
         <div className="flex items-center gap-4 px-5 pt-3 pb-4">
-          <WorkRestDial work={g.workMin || 1} rest={g.restMin} />
+          <WorkRestDial work={work.stop ? 0 : work.workMin || 1} rest={work.stop ? 60 : work.restMin} />
           <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <Metric icon={FIG_WORK} tone="on" value={g.workMin || '—'} unit={t.minWork} />
-            <Metric icon={FIG_REST} tone="off" value={g.restMin || '—'} unit={t.minRest} />
+            <Metric icon={FIG_WORK} tone="on" value={work.stop ? 0 : work.workMin || '—'} unit={t.minWork} />
+            <Metric icon={FIG_REST} tone="off" value={work.stop ? 60 : work.restMin || '—'} unit={t.minRest} />
           </div>
         </div>
+        <p className={`border-t border-base-content/10 px-5 py-3.5 text-[13.5px] leading-relaxed
+          text-base-content/70 ${dv(locale)}`}>
+          {cycleLabel(work, locale)} — {hi ? g.adviceHi : g.adviceEn}
+        </p>
       </Card>
 
       <div className="grid grid-cols-2 gap-3">
         <Card className="flex flex-col items-center gap-2 px-4 py-4 text-center">
           <Eyebrow className={dv(locale)}>{t.water}</Eyebrow>
-          <Bottles count={Math.round(60 / g.waterEveryMin)} />
+          <Bottles count={Math.round(60 / work.waterEveryMin)} />
           <span>
-            <span className="block font-display text-[31px] leading-none font-black tracking-tighter">{g.waterMl}</span>
+            <span className="block font-display text-[31px] leading-none font-black tracking-tighter">{work.waterMl}</span>
             <span className={`block text-[13px] font-bold text-base-content/70 ${dv(locale)}`}>
-              {hi ? `मि.ली. · हर ${g.waterEveryMin} मिनट` : `ml · every ${g.waterEveryMin} min`}
+              {hi ? `मि.ली. · हर ${work.waterEveryMin} मिनट` : `ml · every ${work.waterEveryMin} min`}
             </span>
           </span>
         </Card>
@@ -209,9 +240,9 @@ export function NowScreen() {
         <>
           <Card>
             <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-box bg-base-content/10">
-              <Fact k={t.perHour} v={cyclesPerHour(g) ?? '—'} />
-              <Fact k={t.restAt} v={restClock(hour, g.workMin, g.restMin)} />
-              <Fact k={t.shiftTotal} v={`${shiftLitres(g)} L`} />
+              <Fact k={t.perHour} v={cyclesPerHour(work) ?? '—'} />
+              <Fact k={t.restAt} v={restClock(hour, work.workMin, work.restMin)} />
+              <Fact k={t.shiftTotal} v={`${shiftLitres(work)} L`} />
               <Fact k={t.ors} v={g.ors ? t.orsYes : t.orsNo} />
               <Fact k={t.openHours} v={shelter.hours} />
               <Fact k={t.capacity} v={String(shelter.capacity)} />
@@ -227,7 +258,7 @@ export function NowScreen() {
           <Card className="px-5 py-4">
             <Eyebrow className={dv(locale)}>{t.onSite}</Eyebrow>
             <p className={`mt-1 font-display text-[19px] font-extrabold tracking-tight ${dv(locale)}`}>
-              {hi ? g.cycleHi : g.cycleEn}
+              {cycleLabel(work, locale)}
             </p>
             <ul className="mt-3.5 flex flex-col gap-2.5">
               {(hi ? g.rulesHi : g.rulesEn).map((rule) => (

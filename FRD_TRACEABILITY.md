@@ -31,11 +31,11 @@ Written to be read by an evaluator. Where something is not built, it says so.
 |---|---|---|
 | **M1** Ingestion & store | **Not built** | No feed health surface. FR-1.9 unmet |
 | **M2** Downscaling & forecast | **Not built** | Synthetic model stands in. No validation surface: MAE/RMSE by lead time, leave-one-station-out, leave-one-district-out, band-assignment accuracy (FR-2.11–2.16) all absent |
-| **M3** Risk grading & advisory | **Substantially covered** | FR-3.1 apparent temperature ✓ · FR-3.3 five bands ✓ · FR-3.5 anomaly-relative ✓ · FR-3.6 structured advisory ✓ · FR-3.7 action not measurement ✓ · FR-3.9/3.10 stale and absent data ✓ · **FR-3.2 work-intensity classes ✗** — light/moderate/heavy share one guidance set · **FR-3.4 uncertainty-aware band assignment ✗** — confidence is displayed but does not shift the band |
+| **M3** Risk grading & advisory | **Substantially covered** | FR-3.1 apparent temperature ✓ · **FR-3.2 work-intensity classes ✓** — light/moderate/heavy each carry their own work-rest ratio and hydration interval, switchable on Now, all three issued per advisory · FR-3.3 five bands ✓ · FR-3.5 anomaly-relative ✓ · FR-3.6 structured advisory ✓ · FR-3.7 action not measurement ✓ · FR-3.9/3.10 stale and absent data ✓ · **FR-3.4 uncertainty-aware band assignment ✗** — confidence is displayed but does not shift the band |
 | **M4** Alert delivery | **Preview only** | SMS and IVR content rendered with the 2-segment UCS-2 and 0:32-over-0:30 defects surfaced. No aggregator, no retry queue, no per-recipient logging (FR-4.11–4.13), no opt-out (FR-4.12) |
 | **M5** Registry & labour DB | **Miniature** | Seeded registry lookup by phone (FR-5.6 targeting). No import, dedupe, consent capture or DPDP rights (FR-5.2–5.9) |
 | **M6** Administrative dashboard | **Partial** | FR-6.1 risk surface ✓ · FR-6.2 drill-down ✓ · FR-6.5 review/approve ✓ · FR-6.6 no dispatch without approval ✓ · FR-6.10 responsive ✓ · FR-6.11 English + Hindi ✓ · **FR-6.3/6.4 shelter optimiser ✗** · **FR-6.7 feed health ✗** · **FR-6.8 delivery statistics ✗** · **FR-6.9 CSV/GeoJSON export ✗** |
-| **M7** Audit & reporting | **Not built** | No audit trail, no data vintage record, no signed export. **AC-8 unmet** |
+| **M7** Audit & reporting | **Covered** | FR-7.1 immutable per-advisory log with block, date, band, guidance content, approving user, dispatch time, recipient count **and the data vintage it was built on** ✓ · FR-7.2 CSV and JSON export for a district ✓ · provenance chain from feed issue → model run → band assignment → approval → dispatch ✓ · SHA-256 over issued content ✓ · **FR-7.3 statutory compliance report ✗** · export is not cryptographically signed |
 | **M8** Admin console & access control | **Partial** | Roles exist and gate the approval queue (FR-7.5). No user management, no configuration screens, no Rajasthan SSO (FR-7.7) |
 
 ## Acceptance criteria
@@ -49,7 +49,7 @@ Written to be read by an evaluator. Where something is not built, it says so.
 | AC-5 | Dashboard shows risk surface, shelter plan, advisory through approval | **Partial** — surface and approval yes, shelter plan no |
 | AC-6 | Labour DB adapters on schema-conformant synthetic records | ✗ |
 | AC-7 | Stale and no-data conditions produce caution, never low-risk | ✓ — implemented and unit-tested |
-| AC-8 | Audit trail exportable including data vintage | ✗ |
+| AC-8 | Audit trail exportable including data vintage | ✓ — implemented; export not yet signed |
 
 ## Defects found in the FRD itself
 
@@ -74,11 +74,12 @@ Surfaced in the advisory console rather than buried in a document:
 
 ## Next, in priority order
 
-1. **FR-3.2 work-intensity variants** — a Must, and guidance differs materially
-   between a headload carrier and a site clerk.
-2. **M7 audit trail with data vintage** — AC-8 is an acceptance criterion; Phase 1
-   does not pass without it.
-3. **FR-3.4 uncertainty-aware band assignment** — confidence is computed and
-   displayed but does not yet resolve upward into the band.
-4. **FR-6.3/6.4 shelter optimiser** — the one genuinely novel piece of the
+1. **FR-3.4 uncertainty-aware band assignment** — confidence is computed and
+   displayed but does not yet resolve upward into the band, which DP-2 implies
+   it should.
+2. **FR-6.3/6.4 shelter optimiser** — the one genuinely novel piece of the
    administrative dashboard still missing.
+3. **M5 registry import and DPDP consent** — the largest untouched module, and
+   the one with the legal exposure.
+4. **FR-7.2 signed export** — the audit trail exports, but a signature is what
+   makes it evidence rather than a spreadsheet.

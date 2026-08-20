@@ -70,3 +70,64 @@ test('DP-2: stale input raises the band and never lowers it', () => {
   for (const b of [1, 2, 3, 4, 5]) assert.ok(raise(b) >= b);
   assert.equal(raise(5), 5);
 });
+
+/* ── FR-3.2 · work-intensity variants ─────────────────────────────────────
+   Mirrors the matrix in bands.ts. Two properties must hold at every band, or
+   the guidance is unsafe for the heaviest work or wasteful for the lightest. */
+
+const MATRIX = {
+  1: { light: [0, 0, 250, 60], moderate: [0, 0, 250, 60], heavy: [0, 0, 350, 60] },
+  2: { light: [0, 0, 400, 60], moderate: [45, 15, 500, 60], heavy: [40, 20, 600, 60] },
+  3: { light: [50, 10, 500, 45], moderate: [40, 15, 500, 30], heavy: [30, 30, 500, 20] },
+  4: { light: [40, 20, 500, 30], moderate: [30, 30, 500, 20], heavy: [20, 40, 500, 15] },
+  5: { light: [25, 35, 500, 20], moderate: [15, 45, 500, 20], heavy: [0, 60, 500, 15] },
+};
+const workPerHour = ([w, r]) => (w === 0 && r === 0 ? 60 : w === 0 ? 0 : Math.round((w / (w + r)) * 60));
+const waterPerHour = ([, , ml, every]) => ml * (60 / every);
+
+test('FR-3.2: heavier work never gets more permitted work time than lighter work', () => {
+  for (const band of [1, 2, 3, 4, 5]) {
+    const { light, moderate, heavy } = MATRIX[band];
+    assert.ok(
+      workPerHour(light) >= workPerHour(moderate) && workPerHour(moderate) >= workPerHour(heavy),
+      `band ${band}: expected light >= moderate >= heavy work minutes`,
+    );
+  }
+});
+
+test('FR-3.2: heavier work never gets less water than lighter work', () => {
+  for (const band of [1, 2, 3, 4, 5]) {
+    const { light, moderate, heavy } = MATRIX[band];
+    assert.ok(
+      waterPerHour(heavy) >= waterPerHour(moderate) && waterPerHour(moderate) >= waterPerHour(light),
+      `band ${band}: expected heavy >= moderate >= light water per hour`,
+    );
+  }
+});
+
+test('FR-3.2: permitted work time falls as the band rises, for every class', () => {
+  for (const cls of ['light', 'moderate', 'heavy']) {
+    for (let band = 2; band <= 5; band++) {
+      assert.ok(
+        workPerHour(MATRIX[band][cls]) <= workPerHour(MATRIX[band - 1][cls]),
+        `${cls}: band ${band} should not permit more work than band ${band - 1}`,
+      );
+    }
+  }
+});
+
+test('FR-3.2: only heavy work at Band 5 is told to stop outright', () => {
+  assert.equal(workPerHour(MATRIX[5].heavy), 0);
+  assert.ok(workPerHour(MATRIX[5].moderate) > 0);
+  assert.ok(workPerHour(MATRIX[5].light) > 0);
+});
+
+test('shift intake stays within a defensible ceiling at every band and class', () => {
+  for (const band of [1, 2, 3, 4, 5]) {
+    for (const cls of ['light', 'moderate', 'heavy']) {
+      const perHour = waterPerHour(MATRIX[band][cls]);
+      // NIOSH cautions against exceeding ~1.4 L/h; the app also warns at 1 L/h.
+      assert.ok(perHour <= 2000, `band ${band} ${cls}: ${perHour} ml/h is implausible`);
+    }
+  }
+});

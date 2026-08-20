@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/lib/store';
 import { dv } from '@/lib/i18n';
 import { forecastFor } from '@/lib/data/mock';
+import { cycleLabel, INTENSITY_LABELS } from '@/lib/forecast/bands';
 import { Icon } from './Pictograms';
 
 interface Turn { role: 'user' | 'assistant'; html: string }
@@ -19,7 +20,7 @@ interface Turn { role: 'user' | 'assistant'; html: string }
  */
 export function AskScreen() {
   const app = useApp();
-  const { t, locale, block, district, forecast: f, band, guidance: g, hour, shelters, days } = app;
+  const { t, locale, block, district, forecast: f, band, guidance: g, work, intensity, hour, shelters, days } = app;
   const hi = locale === 'hi';
   const [turns, setTurns] = useState<Turn[]>([{ role: 'assistant', html: t.askHello }]);
   const [draft, setDraft] = useState('');
@@ -31,7 +32,7 @@ export function AskScreen() {
   const i = hour - 6;
   const place = hi ? block.hi : block.en;
   const shelter = shelters.find((s) => s.open) ?? shelters[0];
-  const perHour = g.waterMl * (60 / g.waterEveryMin);
+  const perHour = work.waterMl * (60 / work.waterEveryMin);
   const shift = ((perHour * 8) / 1000).toFixed(1);
   const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -41,15 +42,15 @@ export function AskScreen() {
 
     if (has('water', 'पानी', 'drink', 'पीना', 'ors', 'hydrat', 'कितना'))
       return hi
-        ? `<b>${g.waterMl} मि.ली. हर ${g.waterEveryMin} मिनट</b> — लगभग ${perHour} मि.ली. प्रति घंटा, 8 घंटे की पाली में करीब <b>${shift} लीटर</b>। ${g.ors ? 'हर दूसरी बोतल में ORS मिलाएँ।' : 'आज सादा पानी काफ़ी है।'}<br><br>एक घंटे में 1 लीटर से ज़्यादा कभी न पिएँ।`
-        : `<b>${g.waterMl} ml every ${g.waterEveryMin} minutes</b> — about ${perHour} ml an hour, roughly <b>${shift} litres</b> across an 8-hour shift. ${g.ors ? 'Add ORS to every second bottle.' : 'Plain water is enough today.'}<br><br>Never take more than 1 litre in any single hour.`;
+        ? `<b>${work.waterMl} मि.ली. हर ${work.waterEveryMin} मिनट</b> — लगभग ${perHour} मि.ली. प्रति घंटा, 8 घंटे की पाली में करीब <b>${shift} लीटर</b>। ${g.ors ? 'हर दूसरी बोतल में ORS मिलाएँ।' : 'आज सादा पानी काफ़ी है।'}<br><br>एक घंटे में 1 लीटर से ज़्यादा कभी न पिएँ।`
+        : `<b>${work.waterMl} ml every ${work.waterEveryMin} minutes</b> — about ${perHour} ml an hour, roughly <b>${shift} litres</b> across an 8-hour shift. ${g.ors ? 'Add ORS to every second bottle.' : 'Plain water is enough today.'}<br><br>Never take more than 1 litre in any single hour.`;
 
     if (has('hour', 'when', 'time', 'समय', 'window', 'कब', 'shift', 'schedule'))
       return !f.window
         ? hi ? `आज ${place} में कोई खतरे का समय नहीं — पूरे दिन बैंड 2 या कम।`
              : `No danger window in ${place} today — Band 2 or below all day.`
         : hi ? `${place} में खतरे का समय <b>${f.window}</b> है, उच्चतम ${f.peakTemp}° (महसूस ${f.peakFeels}°)।<br><br>भारी काम <b>${pad(f.windowStart!)}:00 से पहले</b> या <b>${pad(f.windowEnd!)}:00 के बाद</b> करें।`
-             : `The danger window in ${place} is <b>${f.window}</b>, peaking at ${f.peakTemp}° (feels ${f.peakFeels}°).<br><br>Do heavy work <b>before ${pad(f.windowStart!)}:00</b> or <b>after ${pad(f.windowEnd!)}:00</b>. Inside it: ${g.cycleEn.toLowerCase()}.`;
+             : `The danger window in ${place} is <b>${f.window}</b>, peaking at ${f.peakTemp}° (feels ${f.peakFeels}°).<br><br>Do heavy work <b>before ${pad(f.windowStart!)}:00</b> or <b>after ${pad(f.windowEnd!)}:00</b>. Inside it: ${cycleLabel(work, 'en').toLowerCase()}.`;
 
     if (has('shelter', 'cool', 'shade', 'केंद्र', 'छाया'))
       return hi
@@ -78,12 +79,20 @@ export function AskScreen() {
         : `Tomorrow (${days[1].date}) ${place} is forecast at <b>Band ${td.maxBand}</b>, peaking ${td.peakTemp}° (feels ${td.peakFeels}°). Danger window ${td.window ?? '—'}.`;
     }
 
-    if (has('rest', 'break', 'cycle', 'आराम', 'चक्र'))
-      return g.workMin
-        ? hi ? `<b>${g.cycleHi}</b> — लगभग ${(60 / (g.workMin + g.restMin)).toFixed(1)} चक्र प्रति घंटा।<br><br>आराम हवादार छाया में बैठकर लें। 'अभी' स्क्रीन पर चक्र टाइमर चालू करें।`
-             : `<b>${g.cycleEn}</b> — about ${(60 / (g.workMin + g.restMin)).toFixed(1)} cycles an hour.<br><br>Rest sitting in shade with airflow; standing in the sun is not rest. Start the cycle timer on the Now screen and it calls each switch for you.`
-        : hi ? `आज चक्र की ज़रूरत नहीं — बैंड ${band} पर लगातार काम ठीक है।`
-             : `No cycle needed today — at Band ${band} continuous work is fine.`;
+    if (has('rest', 'break', 'cycle', 'आराम', 'चक्र', 'heavy', 'light', 'भारी', 'हल्का')) {
+      const label = hi ? INTENSITY_LABELS[intensity].hi : INTENSITY_LABELS[intensity].en;
+      if (work.stop)
+        return hi
+          ? `${label} काम आज बंद रखें — बैंड ${band} पर भारी काम सुरक्षित नहीं। टीम को शीतल केंद्र भेजें।`
+          : `Stop ${label.toLowerCase()} work today — at Band ${band} it is not safe. Move the crew to a cooling station.`;
+      if (!work.workMin)
+        return hi
+          ? `${label} काम के लिए आज चक्र की ज़रूरत नहीं — बैंड ${band} पर लगातार काम ठीक है।`
+          : `No cycle needed for ${label.toLowerCase()} work today — at Band ${band} continuous work is fine.`;
+      return hi
+        ? `${label} काम के लिए <b>${cycleLabel(work, 'hi')}</b> — लगभग ${(60 / (work.workMin + work.restMin)).toFixed(1)} चक्र प्रति घंटा।<br><br>काम का प्रकार बदलने पर अनुपात भी बदलता है — 'अभी' स्क्रीन पर चुनें।`
+        : `For ${label.toLowerCase()} work: <b>${cycleLabel(work, 'en')}</b> — about ${(60 / (work.workMin + work.restMin)).toFixed(1)} cycles an hour.<br><br>The ratio changes with the work class; switch it on the Now screen. Heavier work sheds less heat, so it earns more rest at the same band.`;
+    }
 
     if (has('cloth', 'wear', 'कपड़े', 'पहन'))
       return hi
