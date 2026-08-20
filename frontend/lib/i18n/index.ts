@@ -126,7 +126,9 @@ const en = {
   sendCode: 'Send code', enterCode: 'Enter the 6-digit code', sentTo: 'Sent to',
   resend: 'Resend code', verify: 'Verify', changeNumber: 'Change number',
   demoAccounts: 'Demo accounts — no code needed',
-  signOut: 'Sign out',
+  signOut: 'Sign out', switchAccount: 'Switch account', account: 'Account',
+  acctPhone: 'mobile', acctDistrict: 'district', acctBlock: 'block',
+  acctNote: 'Demo accounts sign in without a code. Switching keeps any advisories you already approved.',
 };
 
 type Dict = typeof en;
@@ -244,7 +246,9 @@ const hi: Dict = {
   sendCode: 'कोड भेजें', enterCode: '6 अंकों का कोड डालें', sentTo: 'भेजा गया',
   resend: 'दोबारा भेजें', verify: 'पुष्टि करें', changeNumber: 'नंबर बदलें',
   demoAccounts: 'डेमो खाते — कोड की ज़रूरत नहीं',
-  signOut: 'साइन आउट',
+  signOut: 'साइन आउट', switchAccount: 'खाता बदलें', account: 'खाता',
+  acctPhone: 'मोबाइल', acctDistrict: 'ज़िला', acctBlock: 'ब्लॉक',
+  acctNote: 'डेमो खाते बिना कोड के खुलते हैं। खाता बदलने पर पहले स्वीकृत सलाह बनी रहती है।',
 };
 
 export const DICT: Record<Locale, Dict> = { en, hi };

@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useApp } from '@/lib/store';
 import { dv } from '@/lib/i18n';
 import { Icon } from './Pictograms';
 import { Toast } from './Primitives';
+import { AccountSheet } from './AccountSheet';
 
 const TABS = [
   { href: '/app/now/', key: 'tabNow', icon: <path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z" /> },
@@ -22,6 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale, theme, toggleTheme, session, block, district, queue, toast } = useApp();
   const pathname = usePathname();
   const router = useRouter();
+  const [accountOpen, setAccountOpen] = useState(false);
 
   /* the app requires a session; the marketing pages do not */
   useEffect(() => {
@@ -44,17 +46,25 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="relative z-2 mx-auto flex min-h-dvh max-w-[452px] flex-col md:my-6 md:min-h-[calc(100dvh-3rem)]
       md:rounded-[38px] md:shadow-2xl md:ring-1 md:ring-base-content/10">
       <header className="sticky top-0 z-25 flex items-center gap-2 bg-linear-to-b from-base-200 from-68% to-transparent px-5 pt-4 pb-2">
-        <Link href="/app/now/" className="mr-auto flex min-w-0 items-center gap-2.5">
-          <span className="grid size-8.5 shrink-0 place-items-center rounded-selector bg-neutral text-neutral-content">
-            <Icon size={18} stroke={2.2}><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z" /></Icon>
+        <button onClick={() => setAccountOpen(true)} aria-haspopup="dialog" aria-expanded={accountOpen}
+          className="press mr-auto flex min-w-0 items-center gap-2.5 rounded-selector text-left">
+          <span className={`grid size-8.5 shrink-0 place-items-center rounded-selector font-display
+            text-[11px] font-black ${
+              session?.role === 'officer' ? 'bg-neutral text-neutral-content' : 'bg-primary text-primary-content'}`}>
+            {(session?.name ?? '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
           </span>
           <span className="min-w-0">
-            <b className={`block font-display text-base font-extrabold tracking-tight ${dv(locale)}`}>{t.brand}</b>
+            <span className="flex items-center gap-1">
+              <b className={`truncate font-display text-[15px] font-extrabold tracking-tight ${dv(locale)}`}>
+                {session?.name ?? t.brand}
+              </b>
+              <Icon size={13} stroke={2.6} className="shrink-0 text-base-content/40"><path d="M6 9l6 6 6-6" /></Icon>
+            </span>
             <span className={`block truncate text-[11.5px] font-semibold text-base-content/55 ${dv(locale)}`}>
               {locale === 'hi' ? district.hi : district.en} · {locale === 'hi' ? block.hi : block.en}
             </span>
           </span>
-        </Link>
+        </button>
 
         <div className="surface flex rounded-selector p-0.5" role="group" aria-label="Language">
           {(['en', 'hi'] as const).map((l) => (
@@ -102,6 +112,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </nav>
 
+      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} />
       <Toast message={toast} />
     </div>
   );
