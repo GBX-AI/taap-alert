@@ -10,7 +10,7 @@ Written to be read by an evaluator. Where something is not built, it says so.
 | Ref | Requirement | Status |
 |---|---|---|
 | **KF-1** | Hyperlocal (block/ward) heat-index forecasting | **Partial** — 33 districts × 136 blocks and wards graded hourly across 4 days, but from a synthetic diurnal model, not a downscaled NWP |
-| **KF-2** | SMS/voice alerts in regional language with practical guidance | **Partial** — Hindi SMS and Marwari IVR script rendered with segment and duration checks; no dispatch |
+| **KF-2** | SMS/voice alerts in regional language with practical guidance | **Substantially covered** — every advisory issues as three forms (Hindi SMS, Hindi IVR, Marwari IVR) with language routing, delivery outcomes and dispatch history; no live aggregator |
 | **KF-3** | Administrative dashboard for shelter siting and timing advisories | **Partial** — approval queue, advisory detail, dispatch gesture, shelter open/close recording; no optimiser |
 | **KF-4** | Integration with labour department databases | **Demonstrated in miniature** — phone number resolves to a seeded BOCW/MGNREGA record and targets that worker's own block |
 
@@ -32,9 +32,9 @@ Written to be read by an evaluator. Where something is not built, it says so.
 | **M1** Ingestion & store | **Not built** | No feed health surface. FR-1.9 unmet |
 | **M2** Downscaling & forecast | **Not built** | Synthetic model stands in. No validation surface: MAE/RMSE by lead time, leave-one-station-out, leave-one-district-out, band-assignment accuracy (FR-2.11–2.16) all absent |
 | **M3** Risk grading & advisory | **Substantially covered** | FR-3.1 apparent temperature ✓ · **FR-3.2 work-intensity classes ✓** — light/moderate/heavy each carry their own work-rest ratio and hydration interval, switchable on Now, all three issued per advisory · FR-3.3 five bands ✓ · FR-3.5 anomaly-relative ✓ · FR-3.6 structured advisory ✓ · FR-3.7 action not measurement ✓ · FR-3.9/3.10 stale and absent data ✓ · **FR-3.4 uncertainty-aware band assignment ✗** — confidence is displayed but does not shift the band |
-| **M4** Alert delivery | **Preview only** | SMS and IVR content rendered with the 2-segment UCS-2 and 0:32-over-0:30 defects surfaced. No aggregator, no retry queue, no per-recipient logging (FR-4.11–4.13), no opt-out (FR-4.12) |
+| **M4** Alert delivery | **Substantially covered** | FR-4.1 both channels issued ✓ · FR-4.2 IVR in Hindi **and** Marwari, routed by the recipient's preferred-language field ✓ · FR-4.3 Marwari from a recorded prompt bank, not Bhashini ✓ · FR-4.9 SMS in Devanagari with real UCS-2 segment counting ✓ · FR-4.11 per-channel outcome logging — dispatched, delivered, answered, listened through, repeat keypress, failed ✓ · FR-4.7 retry buckets with next attempt ✓ · FR-4.12 opt-out counted ✓ · **no aggregator integration — outcomes are simulated** · FR-4.13 daily cap and FR-4.15 feedback call not built |
 | **M5** Registry & labour DB | **Miniature** | Seeded registry lookup by phone (FR-5.6 targeting). No import, dedupe, consent capture or DPDP rights (FR-5.2–5.9) |
-| **M6** Administrative dashboard | **Partial** | FR-6.1 risk surface ✓ · FR-6.2 drill-down ✓ · FR-6.5 review/approve ✓ · FR-6.6 no dispatch without approval ✓ · FR-6.10 responsive ✓ · FR-6.11 English + Hindi ✓ · **FR-6.3/6.4 shelter optimiser ✗** · **FR-6.7 feed health ✗** · **FR-6.8 delivery statistics ✗** · **FR-6.9 CSV/GeoJSON export ✗** |
+| **M6** Administrative dashboard | **Partial** | FR-6.1 risk surface ✓ · FR-6.2 drill-down ✓ · FR-6.5 review/approve ✓ · FR-6.6 no dispatch without approval ✓ · **FR-6.8 delivery statistics by block and date ✓** · FR-6.10 responsive ✓ · FR-6.11 English + Hindi ✓ · **FR-6.3/6.4 shelter optimiser ✗** · **FR-6.7 feed health ✗** · FR-6.9 CSV export ✓ for audit, **GeoJSON ✗** |
 | **M7** Audit & reporting | **Covered** | FR-7.1 immutable per-advisory log with block, date, band, guidance content, approving user, dispatch time, recipient count **and the data vintage it was built on** ✓ · FR-7.2 CSV and JSON export for a district ✓ · provenance chain from feed issue → model run → band assignment → approval → dispatch ✓ · SHA-256 over issued content ✓ · **FR-7.3 statutory compliance report ✗** · export is not cryptographically signed |
 | **M8** Admin console & access control | **Partial** | Roles exist and gate the approval queue (FR-7.5). No user management, no configuration screens, no Rajasthan SSO (FR-7.7) |
 
@@ -44,8 +44,8 @@ Written to be read by an evaluator. Where something is not built, it says so.
 |---|---|---|
 | AC-1 | Block/ward forecasts across ≥72 h with published validation | ✗ — forecasts yes, validation no |
 | AC-2 | RMSE reduction vs nearest-district baseline, leave-one-district-out | ✗ |
-| AC-3 | IVR in Hindi and Marwari, under 30 s, with repeat | ✗ — script only, and it runs 0:32 |
-| AC-4 | SMS in Devanagari with correct band content | ✗ — content only, not delivered |
+| AC-3 | IVR in Hindi and Marwari, under 30 s, with repeat | **Partial** — both languages issued and repeat-keypress counted, but no live call, and the script runs 0:32 against the cap |
+| AC-4 | SMS in Devanagari with correct band content | **Partial** — content, segment accounting and delivery outcomes present; no live aggregator |
 | AC-5 | Dashboard shows risk surface, shelter plan, advisory through approval | **Partial** — surface and approval yes, shelter plan no |
 | AC-6 | Labour DB adapters on schema-conformant synthetic records | ✗ |
 | AC-7 | Stale and no-data conditions produce caution, never low-risk | ✓ — implemented and unit-tested |

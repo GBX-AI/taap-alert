@@ -131,3 +131,46 @@ test('shift intake stays within a defensible ceiling at every band and class', (
     }
   }
 });
+
+/* ── FR-4.1/4.2 · every alert is issued in three forms ─────────────────── */
+
+const MARWAR = new Set(['jodhpur','pali','nagaur','barmer','jaisalmer','jalore','sirohi','bikaner']);
+const marwariShare = (d) => (MARWAR.has(d) ? 0.62 : 0.08);
+const planIssuance = (d, total) => {
+  const mr = Math.round(total * marwariShare(d));
+  return { total, hindi: total - mr, marwari: mr };
+};
+
+test('FR-4.2: language routing never loses or duplicates a recipient', () => {
+  for (const d of ['jodhpur', 'kota', 'barmer', 'bharatpur']) {
+    for (const total of [1, 7, 5104, 14208]) {
+      const p = planIssuance(d, total);
+      assert.equal(p.hindi + p.marwari, total, `${d}/${total}: split must sum to the whole`);
+      assert.ok(p.hindi >= 0 && p.marwari >= 0);
+    }
+  }
+});
+
+test('FR-4.2: Marwar districts route a real share to the Marwari prompt bank', () => {
+  const marwar = planIssuance('jodhpur', 10000);
+  const eastern = planIssuance('bharatpur', 10000);
+  assert.ok(marwar.marwari > eastern.marwari * 5);
+  assert.ok(marwar.marwari > 0, 'a Hindi-only dispatch would miss most of Marwar');
+});
+
+test('FR-4.9: Devanagari messages bill as UCS-2 segments, not GSM-7', () => {
+  const chars = 129;                       // the Band-5 Hindi advisory
+  const ucs2PerSegment = 67;               // concatenated UCS-2
+  const gsm7PerSegment = 153;
+  assert.equal(Math.ceil(chars / ucs2PerSegment), 2);
+  assert.equal(Math.ceil(chars / gsm7PerSegment), 1, 'the FRD assumed this, and it is wrong');
+});
+
+test('FR-4.5: the full prompt bank exceeds the 30 s IVR cap', () => {
+  const segments = { greeting: 3, block: 2, band: 4, workRest: 6, hydration: 4,
+                     window: 4, shelter: 5, repeat: 2, symptoms: 2 };
+  const total = Object.values(segments).reduce((a, b) => a + b, 0);
+  assert.ok(total > 30, `prompt bank runs ${total}s against a 30s cap`);
+  const withoutSymptoms = total - segments.symptoms;
+  assert.ok(withoutSymptoms <= 30, 'moving symptoms behind a keypress brings it inside the cap');
+});

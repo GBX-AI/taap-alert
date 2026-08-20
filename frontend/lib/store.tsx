@@ -10,6 +10,7 @@ import { DAYS, forecastFor, markApproved, queueFor, sheltersFor, toggleShelter }
 import type { DayMeta, QueueItem, Shelter } from './data/provider';
 import { clearSession, loadSession, saveSession, type Session } from './auth/provider';
 import { listAudit, recordApproval } from './audit/store';
+import { queueDispatch } from './dispatch/store';
 import { DICT, type Locale } from './i18n';
 
 export type Theme = 'taap' | 'taap-dark';
@@ -163,6 +164,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             smsHindi: `${b.hi}: कल ${BANDS[f.maxBand].hi} गर्मी। ${f.window ?? ''} तक भारी काम न करें।`,
             ivrMarwari: `रामरामसा। ${b.hi} में काल घणी गरमी रैवैला।`,
           },
+        });
+        queueDispatch({
+          advisoryId: `ADV-2026-08-21-${id.slice(0, 3).toUpperCase()}`,
+          blockId: b.id, blockEn: b.en, blockHi: b.hi, districtId: b.districtId,
+          date: '21 Aug 2026', band: f.maxBand, recipients: f.maxBand * 2840,
         });
       });
       markApproved(ids);
